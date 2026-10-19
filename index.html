@@ -3,18 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KnowledgeX · 本地截图答题工具</title>
+<title>KnowledgeX · 本机运行的截图答题工具</title>
 <meta name="description" content="KnowledgeX 在你自己的电脑上运行：本地 Node.js 服务接管模型调用，API Key 用 Windows DPAPI 加密只存本机，截图与回答不写服务端磁盘。">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="assets/knowledge-x.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
-<meta property="og:title" content="KnowledgeX · 本地截图答题工具">
+<meta property="og:title" content="KnowledgeX · 本机运行的截图答题工具">
 <meta property="og:description" content="本地服务、本机加密密钥、不自动重试。截图提交，模型返回推理与代码。">
-<meta property="og:image" content="assets/answer-dark.png">
+<meta property="og:image" content="assets/hero-answer.png">
+<link rel="preload" href="assets/fonts/noto-sc-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="styles.css">
 <script>
-  // Resolve theme before first paint to avoid a flash.
+  // Resolve the theme before first paint so there is no flash.
   (function () {
+    document.documentElement.classList.add('js');
     try {
       var saved = localStorage.getItem('kx-theme');
       var dark = saved ? saved === 'dark' : !window.matchMedia('(prefers-color-scheme: light)').matches;
@@ -30,170 +33,209 @@
 
 <header class="nav">
   <a class="lockup" href="#top" aria-label="KnowledgeX 首页">
-    <img src="assets/knowledge-x.svg" alt="" width="28" height="28">
-    <span class="wordmark">Knowledge<span class="accent">X</span></span>
+    <img src="assets/knowledge-x.svg" alt="" width="26" height="26">
+    <span class="wordmark">Knowledge<span class="x">X</span></span>
   </a>
   <nav class="nav-links" aria-label="页面导航">
     <a href="#how">工作方式</a>
-    <a href="#evidence">界面</a>
+    <a href="#modes">五种模式</a>
+    <a href="#interface">界面</a>
     <a href="#start">快速开始</a>
     <a href="#limits">边界</a>
   </nav>
-  <button class="theme" type="button" aria-pressed="false">切换主题</button>
+  <button class="theme" type="button" aria-pressed="false">切换浅色</button>
 </header>
 
 <main id="main">
+
   <section class="hero" id="top">
-    <div class="hero-copy">
-      <p class="eyebrow">在本机运行</p>
-      <h1>看见问题，<br>理解答案。</h1>
-      <p class="lede">截图提交题目，本地服务调用 DeepSeek 返回推理与代码。密钥加密后只存在你的电脑上。</p>
-      <div class="actions">
-        <a class="btn primary" href="#start">快速开始</a>
-        <a class="btn ghost" href="#how">了解工作方式</a>
+    <img class="hero-ghost" src="assets/kx-ghost.svg" alt="" aria-hidden="true" width="560" height="560">
+    <div class="hero-inner">
+      <div class="hero-lead">
+        <p class="eyebrow">Self-hosted screenshot solver</p>
+        <h1>看见问题，<br>理解答案<span class="punct">。</span></h1>
+      </div>
+      <div class="hero-side">
+        <p class="lede">截图提交题目，本地服务调用 DeepSeek 返回推理与代码。API Key 经 Windows DPAPI 加密，只存在你的电脑上。</p>
+        <div class="actions">
+          <a class="btn primary" href="#start">快速开始</a>
+          <a class="btn ghost" href="#how">看它怎么工作</a>
+        </div>
+        <ul class="meta">
+          <li>Node.js 22+</li>
+          <li>无 npm 依赖</li>
+          <li>AGPL-3.0</li>
+        </ul>
       </div>
     </div>
-    <figure class="hero-shot">
-      <img src="assets/answer-dark.png" alt="KnowledgeX 客户端显示一道编程题的 C++ 解答，包含代码与复杂度分析" width="1280" height="470">
-      <figcaption>真实客户端截图：编程题，DeepSeek 返回的 C++ 解答。</figcaption>
+    <figure class="hero-band">
+      <picture>
+        <source media="(max-width: 720px)" srcset="assets/hero-answer-narrow.png">
+        <img src="assets/hero-answer.png" alt="KnowledgeX 客户端的多选题解答：答案为 A、C，并给出每个选项是奇数还是偶数的判断依据" width="1234" height="177">
+      </picture>
+      <figcaption>真实客户端截图：多选题，DeepSeek 返回的答案与逐项判断依据。</figcaption>
     </figure>
   </section>
 
-  <section class="principles" aria-labelledby="principles-title">
-    <h2 id="principles-title">本地运行，意味着什么</h2>
-    <dl class="rule-list">
-      <div>
-        <dt>密钥不出本机</dt>
-        <dd>API Key 由你自己填写，经 Windows DPAPI 绑定当前用户加密，密文保存在用户数据目录。日志、统计、导出和分发包里都不会出现密钥。</dd>
-      </div>
-      <div>
-        <dt>截图与回答不落盘</dt>
-        <dd>服务端不保存截图、题目或回答正文。进行中的答案只在内存里短期保留，用于断线重连，终态约五分钟后清理。</dd>
-      </div>
-      <div>
-        <dt>每次请求独立</dt>
-        <dd>失败不自动重试，也不回退到原服务。取消会中止本地到上游的连接；已经发出的请求不会撤回。</dd>
-      </div>
-      <div>
-        <dt>只监听回环地址</dt>
-        <dd>服务绑定 <code>127.0.0.1:8787</code>，不对外提供端口。本机会话仍需认证，管理接口不接受匿名调用。</dd>
-      </div>
-    </dl>
+  <section class="ledger" id="how" aria-labelledby="how-title">
+    <div class="ledger-head">
+      <h2 id="how-title">本地运行，意味着什么</h2>
+      <p>服务跑在回环地址上，密钥由你的操作系统保管。下面四条是它的边界，不是功能介绍。</p>
+    </div>
+    <ol class="ledger-list">
+      <li data-reveal>
+        <span class="index" aria-hidden="true">01</span>
+        <h3>密钥不出本机</h3>
+        <p>API Key 由你自己填写，经 Windows DPAPI 绑定当前用户加密，密文保存在用户数据目录。日志、统计、导出和分发包里都不会出现密钥。</p>
+      </li>
+      <li data-reveal>
+        <span class="index" aria-hidden="true">02</span>
+        <h3>截图与回答不落盘</h3>
+        <p>服务端不保存截图、题目或回答正文。进行中的答案只在内存里短期保留，用于断线重连，终态约五分钟后清理。</p>
+      </li>
+      <li data-reveal>
+        <span class="index" aria-hidden="true">03</span>
+        <h3>每次请求独立</h3>
+        <p>失败不自动重试，也不回退到原服务。取消会中止本地到上游的连接，已经发出的请求不会撤回。</p>
+      </li>
+      <li data-reveal>
+        <span class="index" aria-hidden="true">04</span>
+        <h3>只监听回环地址</h3>
+        <p>服务绑定 <code>127.0.0.1:8787</code>，不对外提供端口。本机会话仍需认证，管理接口不接受匿名调用。</p>
+      </li>
+    </ol>
   </section>
 
-  <section class="modes" id="how" aria-labelledby="modes-title">
+  <section class="modes" id="modes" aria-labelledby="modes-title">
     <div class="modes-head">
       <h2 id="modes-title">五种题目，同一套流程</h2>
-      <p>截图后按模式提交，同一次可带多张图片，仍算一次提交。</p>
+      <p>截图后按模式提交，同一次可带多张图片，仍算一次提交。下面的界面与答案都来自真实运行记录。</p>
     </div>
     <ul class="mode-grid">
-      <li class="mode-cell wide">
-        <pre class="mode-code"><code>int main() {
-  long long a, b;
-  std::cin &gt;&gt; a &gt;&gt; b;
-  std::cout &lt;&lt; a + b;
-}</code></pre>
+      <li data-reveal class="mode-card lead">
+        <figure class="mode-shot">
+          <picture>
+            <source media="(max-width: 720px)" srcset="assets/mode-programming-narrow.png">
+            <img src="assets/mode-programming.png" alt="编程模式：客户端显示一段 C++ 代码，包含头文件、输入两个整数并输出它们的和" width="1248" height="267">
+          </picture>
+        </figure>
         <h3>编程</h3>
-        <p>优先遵循题目指定的语言；未指定时使用 C++17，返回可运行的完整代码与复杂度说明。</p>
+        <p>优先遵循题目指定的语言，未指定时使用 C++17，返回可运行的完整代码与复杂度说明。</p>
       </li>
-      <li class="mode-cell">
-        <h3>Debug</h3>
-        <p>沿用截图里的代码语言定位问题。</p>
-      </li>
-      <li class="mode-cell">
-        <h3>单选</h3>
-        <p>给出选项与依据，便于核对。</p>
-      </li>
-      <li class="mode-cell">
+      <li data-reveal class="mode-card multi">
+        <figure class="mode-shot">
+          <img src="assets/mode-multiple.png" alt="多选模式：答案为 A、C" width="225" height="112">
+        </figure>
         <h3>多选</h3>
         <p>逐项判断，标明取舍。</p>
       </li>
-      <li class="mode-cell">
+      <li data-reveal class="mode-card single">
+        <figure class="mode-shot">
+          <img src="assets/mode-single.png" alt="单选模式：答案为 B，附上 2 + 3 = 5 的对应说明" width="225" height="147">
+        </figure>
+        <h3>单选</h3>
+        <p>给出选项与依据，便于核对。</p>
+      </li>
+      <li data-reveal class="mode-card universal">
+        <figure class="mode-shot">
+          <img src="assets/mode-universal.png" alt="通用问答：答案是 42" width="225" height="137">
+        </figure>
         <h3>通用问答</h3>
         <p>不限于题目，直接回答截图内容。</p>
+      </li>
+      <li data-reveal class="mode-card debug">
+        <figure class="mode-shot">
+          <img src="assets/mode-debug.png" alt="Debug 模式：返回修正后的 Python 函数 add" width="269" height="117">
+        </figure>
+        <h3>Debug</h3>
+        <p>沿用截图里的代码语言定位问题。</p>
       </li>
     </ul>
   </section>
 
-  <section class="evidence" id="evidence" aria-labelledby="evidence-title">
-    <h2 id="evidence-title">看得见的部分</h2>
-
-    <div class="evidence-split">
-      <figure class="shot">
-        <img src="assets/statistics.png" alt="KnowledgeX 使用统计页：概览、处理结果、Token 用量、模式分布" width="1100" height="760">
-      </figure>
-      <div class="evidence-copy">
-        <h3>本机使用统计</h3>
-        <p>提交次数、处理结果、耗时和模型实际返回的 Token 用量，只写入本机文件，不上报。未知的数值保持未知，不按零计入。</p>
-        <ul class="ticks">
-          <li>按提交时所在时区归档，默认查看近七日</li>
-          <li>逐次明细保留 90 天，日汇总长期保留</li>
-          <li>可导出日汇总与任务明细 CSV</li>
-        </ul>
-      </div>
+  <section class="interface" id="interface" aria-labelledby="interface-title">
+    <div class="interface-head">
+      <h2 id="interface-title">看得见的部分</h2>
+      <p>管理界面也是本地的网页，同样由这份服务提供，不需要另外装东西。</p>
     </div>
-
-    <figure class="shot full">
-      <img src="assets/settings.png" alt="KnowledgeX 设置页：保存密钥、连接测试、重置全部本机数据" width="1100" height="780">
-      <figcaption>设置页：保存密钥不会发起任何模型请求；连接测试是单独入口，会先提示可能计费。</figcaption>
-    </figure>
+    <div class="figures">
+      <figure data-reveal class="figure figure-wide">
+        <img src="assets/statistics.png" alt="KnowledgeX 使用统计页：概览、处理结果、Token 用量与模式分布" width="900" height="744">
+        <figcaption>
+          <strong>本机使用统计</strong>
+          提交次数、处理结果、耗时和模型实际返回的 Token 用量，只写入本机文件，不上报。未知数值保持未知，不按零计入。
+        </figcaption>
+      </figure>
+      <figure data-reveal class="figure figure-narrow">
+        <img src="assets/settings.png" alt="KnowledgeX 设置页：保存密钥、连接测试、重置全部本机数据" width="580" height="762">
+        <figcaption>
+          <strong>设置页</strong>
+          保存密钥不会发起任何模型请求。连接测试是单独入口，会先提示可能计费。
+        </figcaption>
+      </figure>
+      <ul class="ticks">
+        <li>按提交时所在时区归档，默认查看近七日</li>
+        <li>逐次明细保留 90 天，日汇总长期保留</li>
+        <li>可导出日汇总与任务明细 CSV</li>
+      </ul>
+    </div>
   </section>
 
   <section class="start" id="start" aria-labelledby="start-title">
     <div class="start-copy">
       <h2 id="start-title">从零到第一次提问</h2>
-      <p>需要 Node.js 22 或更新版本，运行后端和离线测试都不需要安装 npm 依赖。补丁会修改本机已安装的客户端，执行前请先关闭它。</p>
-      <p class="fine">补丁锁定当前原版哈希；未知或已被其他程序修改的包会被拒绝。恢复命令保留原始备份。</p>
+      <p>需要 Node.js 22 或更新版本。运行后端和离线测试都不需要安装 npm 依赖，构建步骤也没有。</p>
+      <p>补丁会修改本机已安装的客户端，执行前请先关闭它。</p>
       <ul class="doc-links">
         <li><a href="https://github.com/yuwen773/KnowledgeX#readme">项目说明与行为边界</a></li>
         <li><a href="https://github.com/yuwen773/KnowledgeX/blob/main/docs/VALIDATION.md">验证状态</a></li>
         <li><a href="https://github.com/yuwen773/KnowledgeX/blob/main/docs/MANUAL_ACCEPTANCE.md">需要手动验收的项</a></li>
       </ul>
     </div>
-    <div class="start-steps">
-      <div class="step">
+    <ol class="steps">
+      <li class="step" data-reveal>
         <h3>启动服务</h3>
         <pre><code>npm start</code></pre>
         <p>打开 <code>http://127.0.0.1:8787/login</code> 完成本地登录。</p>
-      </div>
-      <div class="step">
+      </li>
+      <li class="step" data-reveal>
         <h3>保存密钥</h3>
         <pre><code>http://127.0.0.1:8787/settings</code></pre>
-        <p>填写 DeepSeek API Key，保存即加密；不填仍可进入，但不能答题。</p>
-      </div>
-      <div class="step">
+        <p>填写 DeepSeek API Key，保存即加密。不填仍可进入，但不能答题。</p>
+      </li>
+      <li class="step" data-reveal>
         <h3>应用补丁</h3>
         <pre><code>npm run patch:check
 npm run patch:apply</code></pre>
         <p>先检查版本匹配，再备份并修改客户端。需要撤销时执行 <code>npm run patch:restore</code>。</p>
-      </div>
-    </div>
+      </li>
+    </ol>
   </section>
 
   <section class="limits" id="limits" aria-labelledby="limits-title">
-    <h2 id="limits-title">没验证的部分，也写在这里</h2>
-    <p class="limits-lede">下面是当前发布状态下的已知边界。它们不会因为其他验收通过而自动算作通过。</p>
-    <div class="limit-cols">
-      <ul>
-        <li>干净安装的 Windows 10 / 11 尚未验证</li>
-        <li>真实客户端窗口、托盘与热键未进入自动化验收</li>
-        <li>跨 Windows 用户的解密行为未执行</li>
-      </ul>
-      <ul>
-        <li>物理截图与桌面捕获未覆盖，测试使用合成题图</li>
-        <li>真实模型请求的验收预算已用完，全链路暂不可重复</li>
-        <li>模拟模型通过不等于真实答题通过</li>
-      </ul>
+    <div class="limits-head">
+      <h2 id="limits-title">没验证的部分，也写在这里</h2>
+      <p>下面是当前发布状态下的已知边界。它们不会因为其他验收通过而自动算作通过。</p>
     </div>
+    <ul class="limit-list">
+      <li data-reveal>干净安装的 Windows 10 / 11 尚未验证</li>
+      <li data-reveal>真实客户端窗口、托盘与热键未进入自动化验收</li>
+      <li data-reveal>跨 Windows 用户的解密行为未执行</li>
+      <li data-reveal>物理截图与桌面捕获未覆盖，测试使用合成题图</li>
+      <li data-reveal>真实模型请求的验收预算已用完，全链路暂不可重复</li>
+      <li data-reveal>模拟模型通过不等于真实答题通过</li>
+    </ul>
   </section>
+
 </main>
 
 <footer class="footer">
   <div class="footer-brand">
     <img src="assets/knowledge-x.svg" alt="" width="24" height="24">
-    <span>KnowledgeX</span>
+    <span>Knowledge<span class="x">X</span></span>
   </div>
-  <p>本地优先的截图答题工具。使用前请阅读项目文档中的验证范围与恢复说明。</p>
+  <p class="footer-note">本地优先的截图答题工具。使用前请阅读项目文档中的验证范围与恢复说明。</p>
+  <p class="footer-legal"><a href="LICENSE">以 GNU AGPL-3.0 发布。保留所有权利。</a></p>
 </footer>
 
 <script>
@@ -210,6 +252,25 @@ npm run patch:apply</code></pre>
     syncLabel();
   });
   syncLabel();
+</script>
+<script>
+  // Reveal sections as they enter the viewport. IntersectionObserver, not a
+  // scroll listener, so the work happens off the main scroll path.
+  (function () {
+    const targets = document.querySelectorAll('[data-reveal]');
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach(function (el) { el.classList.add('is-in'); });
+      return;
+    }
+    const io = new IntersectionObserver(function (entries) {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('is-in');
+        io.unobserve(entry.target);
+      }
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
+    targets.forEach(function (el) { io.observe(el); });
+  })();
 </script>
 </body>
 </html>
