@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <title>KnowledgeX</title>
+  <rect width="256" height="256" rx="56" fill="#182423"/>
+  <path d="M64 70v116m0-58 58-58m-58 58 58 58M122 70l70 116" stroke="#F3F8F6" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m192 70-70 116" stroke="#60D7B5" stroke-width="17" stroke-linecap="round"/>
+</svg>
